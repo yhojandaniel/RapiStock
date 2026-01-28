@@ -16,6 +16,5 @@ class Product(ProductBase, table=True):
     __tablename__ = "products"
     
     product_id: UUID = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.now(timezone.utc))
-    modified_at: datetime = Field(default_factory=datetime.now(timezone.utc))
-    
+    created_at: datetime = Field(default_factory = lambda: datetime.now(timezone.utc))
+    modified_at: datetime = Field(default_factory = lambda: datetime.now(timezone.utc))

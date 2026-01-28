@@ -2,7 +2,6 @@ from sqlmodel import SQLModel
 from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional
 from .models import ProductBase
 
 # CREATE: Lo que recibes del Frontend (Sin ID, sin fechas)
@@ -11,7 +10,7 @@ class ProductCreate(ProductBase):
 
 # UPDATE: Todo opcional para PATCH
 class ProductUpdate(SQLModel):
-    sku: str | None = None
+    #sku: str | None = None
     name: str | None = None
     stock: int | None = None
     price: Decimal | None = None
