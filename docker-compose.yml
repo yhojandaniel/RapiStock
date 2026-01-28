@@ -1,0 +1,36 @@
+version: '3.8'  # Versión del formato de docker-compose
+
+services:
+  # SERVICIO 1: LA BASE DE DATOS
+  db:
+    image: postgres:15-alpine  # La imagen ligera que pedimos
+    container_name: rapistock_db
+    restart: always  # Si falla, intenta revivir sola
+    ports:
+      - "5432:5432"  # Puerto PC : Puerto Contenedor
+    environment:
+      # Aquí le decimos que lea las variables de tu archivo .env
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      # ESTO ES CRUCIAL: Mapeamos los datos a un volumen persistente
+      # Si no haces esto, al apagar el contenedor, ¡pierdes tus datos!
+      - postgres_data:/var/lib/postgresql/data
+
+  # SERVICIO 2: EL GESTOR VISUAL (PgAdmin)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: rapistock_pgadmin
+    restart: always
+    ports:
+      - "5050:80" # Entrarás por localhost:5050 (el 80 es interno del contenedor)
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - db # Espera a que la DB arranque antes de iniciar este servicio
+
+# Definición del volumen (la "carpeta mágica" gestionada por Docker)
+volumes:
+  postgres_data:
