@@ -1,10 +1,15 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 from uuid import UUID
+from backend.app.core.db import SessionDep
 from schemas import SellerCreate, SellerRead, SellerUpdate
 from models import Seller
-from ...core.db import SessionDep
+from service import SellerService
+
 router = APIRouter()
+
+def get_service(session: SessionDep) -> SellerService:
+    return SellerService(session=session)
 
 # Create Seller
 @router.post(
@@ -14,25 +19,10 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED
 )
 async def create_seller(
-    seller_input: SellerCreate, 
-    session: SessionDep
+    seller_input: SellerCreate,
+    service: SellerService = Depends(get_service),
 ):
-    # Input validate
-    seller_output = Seller.model_validate(seller_input)
-    # Non duplicity
-    statement_email = select(Seller).where(Seller.email == seller_input.email)
-    statement_dni = select(Seller).where(Seller.dni == seller_input.dni)
-    if statement_email or statement_dni:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="El correo o el dni ya está registrado, verificar datos!"
-        )
-    # To DB
-    session.add(seller_output)
-    session.commit()
-    session.refresh(seller_output)
-    
-    return seller_output
+    return service.create_seller_as_service(seller_input=seller_input)
 
 # Get Seller
 @router.get(
@@ -42,28 +32,16 @@ async def create_seller(
     status_code=status.HTTP_200_OK
 )
 async def get_seller(
-    session: SessionDep,
+    service: SellerService = Depends(get_service),
     seller_id: UUID | None = None,
     fullname: str | None = None,
     dni: str | None = None,
 ):
-    seller_query = select(Seller)
-    if seller_id:
-        seller_query = seller_query.where(Seller.seller_id == seller_id)
-    if fullname:
-        seller_query = seller_query.where(Seller.fullname == fullname)
-    if dni:
-        seller_query = seller_query.where(Seller.dni == dni)
-    
-    seller_output = session.exec(seller_query).all()    
-    
-    if not seller_output:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND ,
-            detail="No se encontró al vendedor con el dato proporcionado"
-        )
-    
-    return seller_output
+    return service.get_seller_as_service(
+        seller_id=seller_id, 
+        fullname=fullname, 
+        dni=dni
+    )
 
 # Update Seller
 @router.patch(
@@ -75,46 +53,9 @@ async def get_seller(
 async def update_seller(
     seller_id: UUID,
     seller_data: SellerUpdate,
-    session: SessionDep
+    service: SellerService = Depends(get_service),
 ):
-    seller_query = session.get(Seller, seller_id)
-    if not seller_query:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No existe un vendedor con el identificador"
-        )
-    
-    seller_dict = seller_data.model_dump(exclude_unset=True)
-    if not seller_dict:
-        return seller_query
-    
-    # Validación Email
-    if "email" in seller_dict:
-        new_email = seller_dict["email"]
-        # buscar el mismo email, para un diferente id (FN)
-        statement = select(Seller).where(
-            (Seller.email == new_email) & (Seller.seller_id != seller_id)
-        )
-        if session.exec(statement).first():
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El email ya está en uso por otro vendedor")
-
-    # Validación DNI
-    if "dni" in seller_dict:
-        new_dni = seller_dict["dni"]
-        # buscar el mismo dni, para un diferente id (FN)
-        statement = select(Seller).where(
-            (Seller.dni == new_dni) & (Seller.seller_id != seller_id)
-        )
-        if session.exec(statement).first():
-            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El DNI ya está registrado por otro vendedor")
-    
-    seller_query.sqlmodel_update(seller_dict)
-    
-    session.add(seller_query)
-    session.commit()
-    session.refresh(seller_query)
-    
-    return seller_query
+    return service.update_seller_as_service(seller_id=seller_id, seller_data=seller_data)
 
 @router.delete(
     "/seller/{seller_id}",
@@ -123,15 +64,6 @@ async def update_seller(
 )
 async def delete_seller(
     seller_id: UUID,
-    session: SessionDep
+    service: SellerService = Depends(get_service),
 ):
-    seller_query = session.get(Seller, seller_id)
-    if not seller_query:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No existe un vendedor con el identificador"
-        )
-    session.delete(seller_query)
-    session.commit()
-    
-    return {"detail": "OK"}
+    return service.delete_seller_as_service(seller_id=seller_id)
