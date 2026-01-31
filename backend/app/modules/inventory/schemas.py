@@ -10,7 +10,7 @@ class ProductCreate(ProductBase):
 
 # UPDATE: Todo opcional para PATCH
 class ProductUpdate(SQLModel):
-    #sku: str | None = None
+    sku: str | None = None
     name: str | None = None
     stock: int | None = None
     price: Decimal | None = None
