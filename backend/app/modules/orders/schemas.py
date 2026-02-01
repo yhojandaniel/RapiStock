@@ -6,26 +6,30 @@ from typing import List
 from app.shared.enums import OrderStatus
 from .models import OrderBase, OrderDetailBase
 
-# SCHEMAS DE DETALLE
+# Create OrderDetail
 class OrderDetailCreate(OrderDetailBase):
     pass 
 
+# Read OrderDetail
 class OrderDetailRead(OrderDetailBase):
-    order_detail_id: int
-    order_id: int
+    order_detail_id: UUID
+    order_id: UUID
+    current_price: Decimal
+    
+# Update OrderDetail when something's refunded
+# It's not our work here, but refunds task
 
-# SCHEMAS DE ORDEN
+# Create Order
 class OrderCreate(OrderBase):
     # Al crear una orden, generalmente envías los detalles de una vez
     details: List[OrderDetailCreate] 
 
 class OrderRead(OrderBase):
-    order_id: int
+    order_id: UUID
     created_at: datetime
     # Opcional: Podrías incluir los detalles aquí si usas Relationships
     # details: List[OrderDetailRead] = []
     
 class OrderUpdate(SQLModel):
-    # Todo es opcional porque es un PATCH
-    seller_id: int | None = None
+    # seller_id: UUID | None = None # cannot be updateable, bcs breaks worksflow
     status: OrderStatus | None = None # <--- AQUÍ está la clave

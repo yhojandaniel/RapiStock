@@ -4,7 +4,7 @@ from uuid import UUID
 from backend.app.modules.inventory.service import ProductService
 from schemas import ProductCreate, ProductRead, ProductUpdate
 from models import Product
-from ...core.db import SessionDep
+from backend.app.core.db import SessionDep
 router = APIRouter()
 
 def get_service(session: SessionDep) -> ProductService:
