@@ -4,11 +4,11 @@ from fastapi import HTTPException, status
 from sqlmodel import Session, select, extract
 from sqlalchemy.orm import selectinload
 
-from backend.app.modules.inventory.models import Product
+from app.modules.inventory.models import Product
 
-from backend.app.modules.orders.models import Order, OrderDetail
-from backend.app.modules.orders.schemas import OrderCreate, OrderDetailCreate
-from backend.app.shared.enums import OrderStatus
+from app.modules.orders.models import Order, OrderDetail
+from app.modules.orders.schemas import OrderCreate, OrderDetailCreate
+from app.shared.enums import OrderStatus
 
 
 class OrderService:

@@ -2,9 +2,8 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from backend.app.modules.inventory.models import Product
-from backend.app.modules.inventory.schemas import ProductCreate, ProductUpdate
-
+from app.modules.inventory.models import Product
+from app.modules.inventory.schemas import ProductCreate, ProductUpdate
 
 class ProductService:
     def __init__(self, session: Session):

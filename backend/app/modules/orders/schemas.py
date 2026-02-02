@@ -4,7 +4,7 @@ from decimal import Decimal
 from uuid import UUID
 from typing import List
 from app.shared.enums import OrderStatus
-from .models import OrderBase, OrderDetailBase
+from app.modules.orders.models import OrderBase, OrderDetailBase
 
 # Create OrderDetail
 class OrderDetailCreate(OrderDetailBase):

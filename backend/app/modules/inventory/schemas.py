@@ -2,7 +2,7 @@ from sqlmodel import SQLModel
 from uuid import UUID
 from datetime import datetime
 from decimal import Decimal
-from .models import ProductBase
+from app.modules.inventory.models import ProductBase
 
 # CREATE: Lo que recibes del Frontend (Sin ID, sin fechas)
 class ProductCreate(ProductBase):

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 from uuid import UUID
-from backend.app.core.db import SessionDep
-from schemas import SellerCreate, SellerRead, SellerUpdate
-from models import Seller
-from service import SellerService
+from app.core.db import SessionDep
+from app.modules.sellers.schemas import SellerCreate, SellerRead, SellerUpdate
+from app.modules.sellers.models import Seller
+from app.modules.sellers.service import SellerService
 
 router = APIRouter()
 

@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel
 from uuid import UUID
 from datetime import datetime
-from .models import SellerBase
+from app.modules.sellers.models import SellerBase
 
 class SellerCreate(SellerBase):
     pass

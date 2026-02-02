@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import select
 from uuid import UUID
-from backend.app.modules.inventory.service import ProductService
-from schemas import ProductCreate, ProductRead, ProductUpdate
-from models import Product
-from backend.app.core.db import SessionDep
+from app.modules.inventory.service import ProductService
+from app.modules.inventory.schemas import ProductCreate, ProductRead, ProductUpdate
+from app.modules.inventory.models import Product
+from app.core.db import SessionDep
 router = APIRouter()
 
 def get_service(session: SessionDep) -> ProductService:

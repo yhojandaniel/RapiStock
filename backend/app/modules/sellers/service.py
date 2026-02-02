@@ -2,8 +2,8 @@ from uuid import UUID
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
-from backend.app.modules.sellers.models import Seller
-from backend.app.modules.sellers.schemas import SellerCreate, SellerUpdate
+from app.modules.sellers.models import Seller
+from app.modules.sellers.schemas import SellerCreate, SellerUpdate
 
 
 class SellerService:

@@ -2,10 +2,10 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, status
 from uuid import UUID
 
-from backend.app.core.db import SessionDep
-from backend.app.modules.orders.schemas import OrderCreate, OrderRead
-from backend.app.modules.orders.service import OrderService
-from backend.app.shared.enums import OrderStatus
+from app.core.db import SessionDep
+from app.modules.orders.schemas import OrderCreate, OrderRead
+from app.modules.orders.service import OrderService
+from app.shared.enums import OrderStatus
 
 router = APIRouter()
 
