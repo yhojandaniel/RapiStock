@@ -2,14 +2,19 @@ from typing import Annotated
 from fastapi import Depends, FastAPI
 from sqlmodel import Session, create_engine, SQLModel
 
-sqlite_name = "${POSTGRES_DB}"
+from app.modules.inventory.models import Product
+from app.modules.sellers.models import Seller
+from app.modules.orders.models import Order, OrderDetail
+# from app.modules.refunds.models import Refund
+
+sqlite_name = "dev_rapistock.db"
 sqlite_url = f"sqlite:///{sqlite_name}"
+connect_args = {"check_same_thread": False}
 
-engine = create_engine(sqlite_url)
+engine = create_engine(sqlite_url, connect_args=connect_args)
 
-def create_all_tables(app: FastAPI):
+def create_all_tables():
     SQLModel.metadata.create_all(engine)
-    yield
 
 def get_session():
     with Session(engine) as session:
