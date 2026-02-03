@@ -1,6 +1,6 @@
 from uuid import UUID
 from fastapi import HTTPException, status
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from app.modules.sellers.models import Seller
 from app.modules.sellers.schemas import SellerCreate, SellerUpdate
@@ -50,16 +50,16 @@ class SellerService:
         seller_query = select(Seller)
         if seller_id:
             seller_query = seller_query.where(Seller.seller_id == seller_id)
-        if fullname:
-            seller_query = seller_query.where(Seller.fullname == fullname)
         if dni:
             seller_query = seller_query.where(Seller.dni == dni)
-    
-        seller_output = self.session.exec(seller_query).all()    
-    
+        if fullname:
+            seller_query = seller_query.where(
+                col(Seller.fullname).ilike(f"%{fullname}%")
+            )
         # If there's no data, return an empty list
+        # Don't use any raise here (v0.1.0)
     
-        return seller_output
+        return self.session.exec(seller_query).all()
     
     def update_seller_as_service(
         self,

@@ -30,10 +30,9 @@ async def create_product(
 )
 async def get_product(
     service: ProductService = Depends(get_service),
-    name: str | None = None, 
-    sku: str | None = None,
+    search: str | None = None, 
 ):
-    return service.get_product_as_service(name=name, sku=sku)
+    return service.get_product_as_service(search=search)
 
 @router.patch(
     "/product/{product_id}",

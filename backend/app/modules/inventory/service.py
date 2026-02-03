@@ -1,6 +1,6 @@
 from uuid import UUID
 from fastapi import HTTPException, status
-from sqlmodel import Session, select
+from sqlmodel import Session, select, col, or_
 
 from app.modules.inventory.models import Product
 from app.modules.inventory.schemas import ProductCreate, ProductUpdate
@@ -39,20 +39,22 @@ class ProductService:
     
     def get_product_as_service(
         self,
-        name: str | None = None, 
-        sku: str | None = None,
+        search: str | None = None, 
     ):
         # Query
         product_query = select(Product)
         # Where
-        if name:
-            product_query = product_query.where(Product.name == name)
-        if sku:
-            product_query = product_query.where(Product.sku == sku)
-        product_output = self.session.exec(product_query).all()
+        if search:
+            product_query = product_query.where(
+                or_(
+                    col(Product.sku).ilike(f"%{search}%"),
+                    col(Product.name).ilike(f"%{search}%")
+                )
+            )
         # If there's no data, return empty list
+        # Don't use any raise here (v0.1.0)
     
-        return product_output
+        return self.session.exec(product_query).all()
     
     def update_product_as_service(
         self,
