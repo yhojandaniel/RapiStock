@@ -27,8 +27,7 @@ class OrderCreate(OrderBase):
 class OrderRead(OrderBase):
     order_id: UUID
     created_at: datetime
-    # Opcional: Podrías incluir los detalles aquí si usas Relationships
-    # details: List[OrderDetailRead] = []
+    details: List[OrderDetailRead]
     
 class OrderUpdate(SQLModel):
     # seller_id: UUID | None = None # cannot be updateable, bcs breaks worksflow
