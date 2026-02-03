@@ -7,6 +7,7 @@ from app.core.db import create_all_tables
 # Routers
 from app.modules.inventory.router import router as inventory_router
 from app.modules.orders.router import router as orders_router
+from app.modules.refunds.router import router as refunds_router
 from app.modules.sellers.router import router as sellers_router
 # from app.modules.refunds.router import router as refunds_router
 
@@ -64,11 +65,11 @@ app.include_router(
     prefix="/sellers",
     tags=["Sellers"]
 )
-# app.include_router(
-#     refunds_router,
-#     prefix="/refunds",
-#     tags=["Refunds"]
-# )
+app.include_router(
+    refunds_router,
+    prefix="/refunds",
+    tags=["Refunds"]
+)
 
 
 # Home
