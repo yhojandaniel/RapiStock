@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlmodel import select
 # Resources
-from app.core.db import create_all_tables
+from app.core.db import create_all_tables, SessionDep
 
 # Routers
 from app.modules.inventory.router import router as inventory_router
@@ -74,5 +75,20 @@ app.include_router(
 
 # Home
 @app.get("/", tags=["Health"])
-def read_root():
-    return {"status": "ok", "message": "RapiStock API is running!!"}
+def read_root(session: SessionDep):
+    # Try connection
+    try:
+        session.exec(select(1))
+        # Yes?
+        return {
+            "status": "ok", 
+            "message": "RapiStock API is running!!",
+            "details": "idk, but it's fine"
+        }
+    except Exception as e:
+        # No?
+        return {
+            "status": "ok", 
+            "message": "RapiStock API is running!!", 
+            "details": str(e)
+        }
