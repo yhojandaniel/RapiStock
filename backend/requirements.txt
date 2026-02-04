@@ -1,2 +1,10 @@
+# To business logic 'n DB
 fastapi[standard]==0.128.0
 sqlmodel==0.0.31
+psycopg2-binary==2.9.10
+pydantic-settings>=2.2.0
+alembic>=1.13.0
+# Security
+passlib[bcrypt]
+python-jose[cryptography]
+multipart
