@@ -1,0 +1,56 @@
+version: '3.8'  # docker-compose version
+
+services:
+  # SERVICE 1: DB
+  db:
+    image: postgres:15-alpine  # low weight postgres version
+    container_name: rapistock_db
+    restart: always  # If it fails, try to reanimate by urself
+    ports:
+      - "5432:5432"  # PC port: Container port
+    environment:
+      # Get from .env
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      # Allways volume ur db's to avoid data loss in future
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # SERVICE 2: PgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: rapistock_pgadmin
+    restart: always
+    ports:
+      - "5050:80" # Ur door is localhost:5050 (container owns 80)
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - db # DB first, then pgadmin
+
+  backend:
+    build: ./backend  # Dockerfile is there (Note: avoid . if u create ur ".venv" or "venv" in )
+    container_name: rapistock_api
+    restart: always
+    ports:
+      - "8000:8000" # 8000 from local 'n 8000 from container
+    env_file:
+      - .env  # Get .env data
+    environment:
+      # FORCE OVERWRITE
+      # .env says "localhost", but here is "db"
+      - POSTGRES_SERVER=db 
+    depends_on:
+      db:
+        condition: service_healthy # Wait postgres is ready
+
+# Volume def
+volumes:
+  postgres_data:

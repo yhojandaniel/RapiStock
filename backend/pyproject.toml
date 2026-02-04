@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rapistock"
+version = "0.1.0"
+description = "API para RapiStock"
+
+[tool.setuptools]
+packages = ["app"]

@@ -1,0 +1,60 @@
+Table products {
+  product_id UUID [pk]
+  sku string [unique]
+  name string
+  stock int
+  price decimal
+  is_active bool
+  created_at timestamp
+  modified_at timestamp
+}
+
+Table sellers {
+  seller_id UUID [pk]
+  dni string [unique]
+  fullname string
+  phone string
+  email email [unique]
+  is_active bool // <--- AGREGADO: Vital para no borrar historia
+}
+
+Table orders {
+  order_id UUID [pk]
+  seller_id UUID [ref: > sellers.seller_id]
+  status enum(paid, refunded)
+  created_at timestamp
+  modified_at timestamp
+}
+
+Table order_details {
+  order_detail_id UUID [pk]
+  order_id UUID [ref: > orders.order_id]
+  product_id UUID [ref: > products.product_id]
+  
+  current_price decimal
+  product_quantity int
+  
+  created_at timestamp
+  modified_at timestamp
+}
+
+Table refunds {
+  refund_id UUID [pk]
+  order_id int [ref: > orders.order_id]
+  amount decimal
+  created_at timestamp
+  modified_at timestamp
+}
+
+Table refund_details {
+  refund_detail_id UUID [pk]
+  refund_id UUID [ref: > refunds.refund_id]
+  order_detail_id int [ref: > order_details.order_detail_id]
+  
+  refunded_price decimal
+  product_quantity int
+  status enum(same, opened)
+  
+  created_at timestamp
+  modified_at timestamp
+}
