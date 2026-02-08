@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import select
 # Resources
-from app.core.db import create_all_tables, SessionDep
+from app.core.db import init_db, SessionDep
 
 # Routers
 from app.modules.inventory.router import router as inventory_router
@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     # Turn on
     print("Iniciando RapiStock API...")
     # create all tables
-    create_all_tables()
+    await init_db()
     
     yield # API's alive!
     
@@ -78,7 +78,7 @@ app.include_router(
 def read_root(session: SessionDep):
     # Try connection
     try:
-        session.exec(select(1))
+        session.execute(select(1))
         # Yes?
         return {
             "status": "ok", 
