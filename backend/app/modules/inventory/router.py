@@ -11,7 +11,7 @@ def get_service(session: SessionDep) -> ProductService:
     return ProductService(session=session)
 
 @router.post(
-    "/product",
+    "/",
     response_model=ProductRead,
     status_code=status.HTTP_201_CREATED,
     tags=["Products"]
@@ -23,7 +23,7 @@ async def create_product(
     return await service.create_product_as_service(product_input=product_input)
 
 @router.get(
-    "/products",
+    "/",
     response_model=list[ProductRead],
     status_code=status.HTTP_200_OK,
     tags=["Products"]
@@ -35,7 +35,7 @@ async def get_product(
     return await service.get_product_as_service(search=search)
 
 @router.patch(
-    "/product/{product_id}",
+    "/{product_id}",
     response_model=ProductRead,
     status_code=status.HTTP_200_OK,
     tags=["Products"]
@@ -48,8 +48,8 @@ async def update_product(
     return await service.update_product_as_service(product_id=product_id, product_input=product_input)
 
 @router.delete(
-    "/product/{product_id}",
-    status_code=status.HTTP_202_ACCEPTED,
+    "/{product_id}",
+    status_code=status.HTTP_200_OK,
     tags=["Products"]
 )
 async def delete_product(

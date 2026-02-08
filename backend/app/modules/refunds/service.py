@@ -105,7 +105,13 @@ class RefundService:
         self.session.add(order)
         # To DB
         await self.session.commit()
-        await self.session.refresh(refund_output)
+        # Reload with relationships
+        query = select(Refund).where(
+            Refund.refund_id == refund_output.refund_id
+        ).options(selectinload(Refund.details))
+        result = await self.session.execute(query)
+        refund_output = result.scalars().one()
+        
         return refund_output
     
     async def get_refund_as_service(

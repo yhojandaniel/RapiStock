@@ -80,7 +80,14 @@ class OrderService:
             )
         # to DB
         await self.session.commit()
-        await self.session.refresh(order_output)
+        # Reload with relationships eager loaded to prevent MissingGreenlet error
+        query = select(Order).where(
+            Order.order_id == order_output.order_id
+        ).options(selectinload(Order.details))
+        
+        result = await self.session.execute(query)
+        order_output = result.scalars().one()
+        
         return order_output
     
     async def get_order_as_service(

@@ -13,7 +13,7 @@ def get_service(session: SessionDep) -> OrderService:
     return OrderService(session=session)
 
 @router.post(
-    path="/order",
+    path="/",
     response_model=OrderRead,
     status_code=status.HTTP_201_CREATED,
     tags=["Orders"]
@@ -25,7 +25,7 @@ async def create_order(
     return await service.create_order_as_service(order_input=order_input)
 
 @router.get(
-    path="/orders",
+    path="/",
     response_model=list[OrderRead],
     status_code=status.HTTP_200_OK,
     tags=["Orders"]
@@ -45,7 +45,7 @@ async def get_order(
     )
 
 @router.patch(
-    path="/order/{order_id}",
+    path="/{order_id}",
     response_model=OrderRead,
     status_code=status.HTTP_200_OK,
     tags=["Orders"]

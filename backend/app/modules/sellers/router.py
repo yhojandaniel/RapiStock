@@ -13,7 +13,7 @@ def get_service(session: SessionDep) -> SellerService:
 
 # Create Seller
 @router.post(
-    "/seller",
+    "/",
     response_model=SellerRead,
     tags=["Sellers"],
     status_code=status.HTTP_201_CREATED
@@ -26,7 +26,7 @@ async def create_seller(
 
 # Get Seller
 @router.get(
-    "/sellers",
+    "/",
     response_model=list[SellerRead],
     tags=["Sellers"],
     status_code=status.HTTP_200_OK
@@ -45,7 +45,7 @@ async def get_seller(
 
 # Update Seller
 @router.patch(
-    "/seller/{seller_id}",
+    "/{seller_id}",
     response_model=SellerRead,
     tags=["Sellers"],
     status_code=status.HTTP_200_OK
@@ -57,8 +57,9 @@ async def update_seller(
 ):
     return await service.update_seller_as_service(seller_id=seller_id, seller_data=seller_data)
 
+# Delete seller
 @router.delete(
-    "/seller/{seller_id}",
+    "/{seller_id}",
     tags=["Sellers"],
     status_code=status.HTTP_202_ACCEPTED
 )

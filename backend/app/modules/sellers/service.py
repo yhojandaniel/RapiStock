@@ -118,7 +118,7 @@ class SellerService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No existe un vendedor con el identificador"
             )
-        self.session.delete(seller_query)
+        await self.session.delete(seller_query)
         await self.session.commit()
     
         return {"detail": "OK"}

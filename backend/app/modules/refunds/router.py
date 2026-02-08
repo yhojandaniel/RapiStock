@@ -13,7 +13,7 @@ def get_service(session: SessionDep) -> RefundService:
     return RefundService(session=session)
 
 @router.post(
-    path="/refund",
+    path="/",
     response_model=RefundRead,
     status_code=status.HTTP_201_CREATED,
     tags=["Refunds"]
@@ -25,7 +25,7 @@ async def create_refund(
     return await service.create_refund_as_service(refund_input=refund_input)
 
 @router.get(
-    path="/refunds",
+    path="/",
     response_model=list[RefundRead],
     status_code=status.HTTP_200_OK,
     tags=["Refunds"]
@@ -47,7 +47,7 @@ async def get_refund(
 # No updates due business model
 """ 
 @router.patch(
-    path="/order/{order_id}",
+    path="/{order_id}",
     response_model=RefundRead,
     status_code=status.HTTP_200_OK,
     tags=["Orders"]

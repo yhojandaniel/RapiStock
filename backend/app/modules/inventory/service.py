@@ -143,6 +143,6 @@ class ProductService:
                 detail="El producto que quieres borrar no existe con ese ID!"
             )
         # to DB
-        self.session.delete(product_query)
+        await self.session.delete(product_query)
         await self.session.commit()
         return {"detail": "OK"}
