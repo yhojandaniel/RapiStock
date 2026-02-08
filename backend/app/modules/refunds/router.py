@@ -18,11 +18,11 @@ def get_service(session: SessionDep) -> RefundService:
     status_code=status.HTTP_201_CREATED,
     tags=["Refunds"]
 )
-def create_refund(
+async def create_refund(
     refund_input: RefundCreate,
     service: RefundService = Depends(get_service)
 ):
-    return service.create_refund_as_service(refund_input=refund_input)
+    return await service.create_refund_as_service(refund_input=refund_input)
 
 @router.get(
     path="/refunds",
@@ -30,14 +30,14 @@ def create_refund(
     status_code=status.HTTP_200_OK,
     tags=["Refunds"]
 )
-def get_refund(
+async def get_refund(
     order_id: UUID | None = None,
     refund_id: UUID | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     service: RefundService = Depends(get_service)
 ):
-    return service.get_refund_as_service(
+    return await service.get_refund_as_service(
         order_id=order_id,
         refund_id=refund_id,
         date_from=date_from,

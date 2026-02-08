@@ -1,30 +1,36 @@
 from uuid import UUID
 from fastapi import HTTPException, status
-from sqlmodel import Session, select, col, or_
+from sqlmodel import select, col, or_
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.inventory.models import Product
 from app.modules.inventory.schemas import ProductCreate, ProductUpdate
 
 class ProductService:
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
         
-    def create_product_as_service(
+    async def create_product_as_service(
         self,
         product_input: ProductCreate,
     ):
         # Validate
         product_output = Product.model_validate(product_input)
         # Non duplicity
-        statement_sku = select(Product).where(Product.sku == product_input.sku)
-        statement_name = select(Product).where(Product.name == product_input.name)
         
-        if self.session.exec(statement_sku).first():
+        statement_sku = select(Product).where(Product.sku == product_input.sku)
+        result_sku = await self.session.execute(statement_sku)
+        
+        if result_sku.scalars().first():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, 
                 detail="Ya existe un producto registrado con ese mismo SKU!"
             )
-        if self.session.exec(statement_name).first():
+            
+        statement_name = select(Product).where(Product.name == product_input.name)
+        result_name = await self.session.execute(statement_name)
+        
+        if result_name.scalars().first():
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, 
                 detail="Ya existe un producto registrado con ese mismo nombre!"
@@ -32,12 +38,12 @@ class ProductService:
         
         # To DB
         self.session.add(product_output)
-        self.session.commit()
-        self.session.refresh(product_output)
+        await self.session.commit()
+        await self.session.refresh(product_output)
         
         return product_output
     
-    def get_product_as_service(
+    async def get_product_as_service(
         self,
         search: str | None = None, 
     ):
@@ -53,16 +59,17 @@ class ProductService:
             )
         # If there's no data, return empty list
         # Don't use any raise here (v0.1.0)
+        
+        result = await self.session.execute(product_query)
+        return result.scalars().all()
     
-        return self.session.exec(product_query).all()
-    
-    def update_product_as_service(
+    async def update_product_as_service(
         self,
         product_id: UUID, 
         product_input: ProductUpdate, 
     ):
         # Validate
-        product_query = self.session.get(Product, product_id)
+        product_query = await self.session.get(Product, product_id)
         if not product_query:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -79,7 +86,8 @@ class ProductService:
                 (Product.sku == new_sku) & 
                 (Product.product_id != product_id)
             )
-            if self.session.exec(statement).first():
+            sku_result = await self.session.execute(statement)
+            if sku_result.scalars().first():
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="Ya hay un producto con ese SKU!"
@@ -91,7 +99,8 @@ class ProductService:
                 (Product.name == new_name) & 
                 (Product.product_id != product_id)
             )
-            if self.session.exec(statement).first():
+            name_result = await self.session.execute(statement)
+            if name_result.scalars().first():
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail="Ya hay un producto con ese nombre!"
@@ -116,17 +125,17 @@ class ProductService:
         # To db
         product_query.sqlmodel_update(product_dict)
         self.session.add(product_query)
-        self.session.commit()
-        self.session.refresh(product_query)
+        await self.session.commit()
+        await self.session.refresh(product_query)
     
         return product_query
     
-    def delete_product_as_service(
+    async def delete_product_as_service(
         self,
         product_id: UUID,
     ):
         # Query
-        product_query = self.session.get(Product, product_id)
+        product_query = await self.session.get(Product, product_id)
         # Found?
         if not product_query:
             raise HTTPException(
@@ -135,5 +144,5 @@ class ProductService:
             )
         # to DB
         self.session.delete(product_query)
-        self.session.commit()
+        await self.session.commit()
         return {"detail": "OK"}

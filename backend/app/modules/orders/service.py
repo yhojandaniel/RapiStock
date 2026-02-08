@@ -1,8 +1,9 @@
 from datetime import datetime
 from uuid import UUID
 from fastapi import HTTPException, status
-from sqlmodel import Session, select, extract
+from sqlmodel import select, extract
 from sqlalchemy.orm import selectinload
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.inventory.models import Product
 
@@ -13,16 +14,16 @@ from app.shared.enums import OrderStatus
 
 class OrderService:
     
-    def __init__(self, session: Session):
+    def __init__(self, session: AsyncSession):
         self.session = session
         
-    def _create_order_item(
+    async def _create_order_item(
         self,
         order_id: UUID,
         item_input: OrderDetailCreate
     ):
         # Select
-        product_output = self.session.get(Product, item_input.product_id)
+        product_output = await self.session.get(Product, item_input.product_id)
         # Empty?
         if not product_output:
             raise HTTPException(
@@ -42,25 +43,25 @@ class OrderService:
             order_id=order_id,
             product_id=product_output.product_id,
             product_quantity=item_input.product_quantity,
-            current_price=product_output.price # Snapshot del precio
+            current_price=product_output.price # Snapshot from Orders.price
         )
         self.session.add(item_output)
     
-    def _restore_stock(
+    async def _restore_stock(
         self,
         order: Order
     ):
         # Each product update
         for item in order.details:
             # Get Product
-            product = self.session.get(Product, item.product_id)
+            product = await self.session.get(Product, item.product_id)
             if product:
                 # Restore
                 product.stock += item.product_quantity
                 # Added to next commit
                 self.session.add(product)
     
-    def create_order_as_service(
+    async def create_order_as_service(
         self,
         order_input: OrderCreate
     ):
@@ -69,20 +70,20 @@ class OrderService:
         order_output = Order(**order_dict)
         # Quasi-commit
         self.session.add(order_output)
-        self.session.flush()
-        self.session.refresh(order_output)
+        await self.session.flush()
+        await self.session.refresh(order_output)
         # validate
         for item_input in order_input.details:
-            self._create_order_item(
+            await self._create_order_item(
                 order_id=order_output.order_id, 
                 item_input=item_input
             )
         # to DB
-        self.session.commit()
-        self.session.refresh(order_output)
+        await self.session.commit()
+        await self.session.refresh(order_output)
         return order_output
     
-    def get_order_as_service(
+    async def get_order_as_service(
         self,
         seller_id: UUID | None = None,
         status: OrderStatus | None = None,
@@ -102,16 +103,19 @@ class OrderService:
         if date_to:
             order_query = order_query.where(Order.created_at <= date_to)
         # Run query
+        result = await self.session.execute(order_query)
         # If there's no data, return []
-        return self.session.exec(order_query).all()
+        return result.scalars().all()
     
-    def update_order_as_service(
+    async def update_order_as_service(
         self,
         order_id: UUID,
         status_input: OrderStatus
     ):
-        # Get
-        order_output = self.session.get(Order, order_id)
+        # Select without details
+        query_order = select(Order).where(Order.order_id == order_id).options(selectinload(Order.details))
+        result_query = await self.session.execute(query_order)
+        order_output = result_query.scalars().first()
         if not order_output:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -121,12 +125,12 @@ class OrderService:
         # ONLY WORKS TO UPDATE THIS CASE (due current model business)
         # PAID -> CANCELLED
         if status_input == OrderStatus.CANCELLED and order_output.status == OrderStatus.PAID:
-            self._restore_stock(order_output)
+            await self._restore_stock(order_output)
         # To DB
         order_output.status = status_input
         self.session.add(order_output)
-        self.session.commit()
-        self.session.refresh(order_output)
+        await self.session.commit()
+        await self.session.refresh(order_output)
         
         return order_output
     

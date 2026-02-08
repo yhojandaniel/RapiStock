@@ -20,7 +20,7 @@ async def create_product(
     product_input: ProductCreate, 
     service: ProductService = Depends(get_service),
     ):
-    return service.create_product_as_service(product_input=product_input)
+    return await service.create_product_as_service(product_input=product_input)
 
 @router.get(
     "/products",
@@ -32,7 +32,7 @@ async def get_product(
     service: ProductService = Depends(get_service),
     search: str | None = None, 
 ):
-    return service.get_product_as_service(search=search)
+    return await service.get_product_as_service(search=search)
 
 @router.patch(
     "/product/{product_id}",
@@ -45,7 +45,7 @@ async def update_product(
     product_input: ProductUpdate, 
     service: ProductService = Depends(get_service),
 ):
-    return service.update_product_as_service(product_id=product_id, product_input=product_input)
+    return await service.update_product_as_service(product_id=product_id, product_input=product_input)
 
 @router.delete(
     "/product/{product_id}",
@@ -56,4 +56,4 @@ async def delete_product(
     product_id: UUID,
     service: ProductService = Depends(get_service),
 ):
-    return service.delete_product_as_service(product_id=product_id)
+    return await service.delete_product_as_service(product_id=product_id)

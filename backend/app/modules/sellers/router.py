@@ -22,7 +22,7 @@ async def create_seller(
     seller_input: SellerCreate,
     service: SellerService = Depends(get_service),
 ):
-    return service.create_seller_as_service(seller_input=seller_input)
+    return await service.create_seller_as_service(seller_input=seller_input)
 
 # Get Seller
 @router.get(
@@ -37,7 +37,7 @@ async def get_seller(
     fullname: str | None = None,
     dni: str | None = None,
 ):
-    return service.get_seller_as_service(
+    return await service.get_seller_as_service(
         seller_id=seller_id, 
         fullname=fullname, 
         dni=dni
@@ -55,7 +55,7 @@ async def update_seller(
     seller_data: SellerUpdate,
     service: SellerService = Depends(get_service),
 ):
-    return service.update_seller_as_service(seller_id=seller_id, seller_data=seller_data)
+    return await service.update_seller_as_service(seller_id=seller_id, seller_data=seller_data)
 
 @router.delete(
     "/seller/{seller_id}",
@@ -66,4 +66,4 @@ async def delete_seller(
     seller_id: UUID,
     service: SellerService = Depends(get_service),
 ):
-    return service.delete_seller_as_service(seller_id=seller_id)
+    return await service.delete_seller_as_service(seller_id=seller_id)

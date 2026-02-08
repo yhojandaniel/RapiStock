@@ -18,11 +18,11 @@ def get_service(session: SessionDep) -> OrderService:
     status_code=status.HTTP_201_CREATED,
     tags=["Orders"]
 )
-def create_order(
+async def create_order(
     order_input: OrderCreate,
     service: OrderService = Depends(get_service)
 ):
-    return service.create_order_as_service(order_input=order_input)
+    return await service.create_order_as_service(order_input=order_input)
 
 @router.get(
     path="/orders",
@@ -30,14 +30,14 @@ def create_order(
     status_code=status.HTTP_200_OK,
     tags=["Orders"]
 )
-def get_order(
+async def get_order(
     seller_id: UUID | None = None,
     status: OrderStatus | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     service: OrderService = Depends(get_service)
 ):
-    return service.get_order_as_service(
+    return await service.get_order_as_service(
         seller_id=seller_id,
         status=status,
         date_from=date_from,
@@ -50,12 +50,12 @@ def get_order(
     status_code=status.HTTP_200_OK,
     tags=["Orders"]
 )
-def update_order(
+async def update_order(
     order_id: UUID,
     status_input: OrderStatus,
     service: OrderService = Depends(get_service)
 ):
-    return service.update_order_as_service(
+    return await service.update_order_as_service(
         order_id=order_id,
         status_input=status_input
     )
