@@ -1,3 +1,4 @@
+from sqlalchemy import Column, DateTime
 from sqlmodel import SQLModel, Field, Relationship
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -27,14 +28,17 @@ class Order(OrderBase, table=True):
         back_populates="order"
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        index=True
+        default_factory = lambda: datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True)
+        )
     )
     modified_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_column_kwargs={
-            "onupdate": lambda: datetime.now(timezone.utc)
-        }
+        default_factory = lambda: datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True),
+            onupdate=lambda: datetime.now(timezone.utc)
+        )
     )
 
 # ORDER DETAIL (Base): Data input from user
@@ -67,11 +71,15 @@ class OrderDetail(OrderDetailBase, table=True):
         back_populates="details"
     )
     created_at: datetime = Field(
-        default_factory = lambda: datetime.now(timezone.utc)
+        default_factory = lambda: datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True)
+        )
     )
     modified_at: datetime = Field(
         default_factory = lambda: datetime.now(timezone.utc),
-        sa_column_kwargs = {
-            "onupdate": lambda: datetime.now(timezone.utc)
-        }
+        sa_column=Column(
+            DateTime(timezone=True),
+            onupdate=lambda: datetime.now(timezone.utc)
+        )
     )

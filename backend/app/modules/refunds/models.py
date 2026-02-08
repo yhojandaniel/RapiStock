@@ -1,4 +1,5 @@
 from uuid import UUID, uuid4
+from sqlalchemy import Column, DateTime
 from sqlmodel import Relationship, SQLModel, Field
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -26,14 +27,17 @@ class Refund(RefundBase, table=True):
         back_populates="refund"
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        index=True
+        default_factory = lambda: datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True)
+        )
     )
     modified_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_column_kwargs = {
-            "onupdate": lambda: datetime.now(timezone.utc)
-        }
+        default_factory = lambda: datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True),
+            onupdate=lambda: datetime.now(timezone.utc)
+        )
     )
 
 # REFUND DETAIL (Base)
@@ -68,11 +72,15 @@ class RefundDetail(RefundDetailBase, table=True):
         back_populates="details"
     )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc)
+        default_factory = lambda: datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True)
+        )
     )
     modified_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_column_kwargs = {
-            "onupdate": lambda: datetime.now(timezone.utc)
-        }
+        default_factory = lambda: datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True),
+            onupdate=lambda: datetime.now(timezone.utc)
+        )
     )
