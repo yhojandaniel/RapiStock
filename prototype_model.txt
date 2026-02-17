@@ -1,60 +1,115 @@
-Table products {
-  product_id UUID [pk]
-  sku string [unique]
-  name string
-  stock int
-  price decimal
-  is_active bool
-  created_at timestamp
+// --------------------------------------------------------
+// ECOSYSTEM 1: ADMIN / OWNER (Web Backoffice)
+// --------------------------------------------------------
+// Esta tabla es una "Isla". No se conecta con nada.
+// Solo sirve para dar acceso a los endpoints de reportes globales.
+Table users {
+  user_id UUID [pk, default: `uuid_generate_v4()`]
+  DNI varchar [unique, note: 'Login del dueño']
+  email varchar [unique]
+  hashed_password varchar [note: 'Cifrada con bcrypt']
+  is_active bool [default: true, note: 'Soft delete para admin']
+  
+  created_at timestamp [default: `now()`]
+  modified_at timestamp
+  
+  Note: "Tabla de acceso exclusivo para el Dueño/Admin. Sin relaciones."
+}
+
+// --------------------------------------------------------
+// ECOSYSTEM 2: SELLERS (Mobile App)
+// --------------------------------------------------------
+
+Table sellers {
+  seller_id UUID [pk, default: `uuid_generate_v4()`]
+  DNI varchar [unique, note: 'Login del vendedor']
+  hashed_password varchar [note: 'Cifrada con bcrypt. Necesaria para la App Móvil']
+  
+  fullname varchar
+  phone varchar
+  email varchar [unique]
+  is_active bool [default: true, note: 'Soft delete: Si se despide, pasa a false']
+  
+  created_at timestamp [default: `now()`]
   modified_at timestamp
 }
 
-Table sellers {
-  seller_id UUID [pk]
-  dni string [unique]
-  fullname string
-  phone string
-  email email [unique]
-  is_active bool // <--- AGREGADO: Vital para no borrar historia
+Table products {
+  product_id UUID [pk, default: `uuid_generate_v4()`]
+  sku varchar [unique]
+  name varchar
+  description varchar
+  stock int
+  price decimal(10, 2)
+  is_active bool [default: true]
+  
+  created_at timestamp [default: `now()`]
+  modified_at timestamp
 }
 
 Table orders {
-  order_id UUID [pk]
-  seller_id UUID [ref: > sellers.seller_id]
-  status enum(paid, refunded)
-  created_at timestamp
+  order_id UUID [pk, default: `uuid_generate_v4()`]
+  seller_id UUID [ref: > sellers.seller_id, note: 'Quién realizó la venta']
+  
+  total_amount decimal(10, 2) [note: 'Suma total calculada']
+  status enum_order_status [default: 'paid']
+  
+  created_at timestamp [default: `now()`]
   modified_at timestamp
 }
 
 Table order_details {
-  order_detail_id UUID [pk]
+  order_detail_id UUID [pk, default: `uuid_generate_v4()`]
   order_id UUID [ref: > orders.order_id]
   product_id UUID [ref: > products.product_id]
   
-  current_price decimal
-  product_quantity int
+  quantity int
+  unit_price decimal(10, 2) [note: 'Precio al momento de la venta (snapshot)']
+  subtotal decimal(10, 2)
   
-  created_at timestamp
-  modified_at timestamp
+  created_at timestamp [default: `now()`]
 }
 
+// --------------------------------------------------------
+// REFUND SYSTEM (Devoluciones)
+// --------------------------------------------------------
+
 Table refunds {
-  refund_id UUID [pk]
-  order_id int [ref: > orders.order_id]
-  amount decimal
-  created_at timestamp
-  modified_at timestamp
+  refund_id UUID [pk, default: `uuid_generate_v4()`]
+  order_id UUID [ref: > orders.order_id]
+  
+  total_refunded_amount decimal(10, 2)
+  reason varchar
+  
+  created_at timestamp [default: `now()`]
 }
 
 Table refund_details {
-  refund_detail_id UUID [pk]
+  refund_detail_id UUID [pk, default: `uuid_generate_v4()`]
   refund_id UUID [ref: > refunds.refund_id]
-  order_detail_id int [ref: > order_details.order_detail_id]
+  order_detail_id UUID [ref: > order_details.order_detail_id]
   
-  refunded_price decimal
-  product_quantity int
-  status enum(same, opened)
+  quantity_returned int
+  refund_amount decimal(10, 2)
   
-  created_at timestamp
-  modified_at timestamp
+  // 'restock': El producto vuelve al inventario (está sellado/nuevo)
+  // 'discard': El producto se tira (está abierto/dañado)
+  status enum_refund_status 
+  
+  created_at timestamp [default: `now()`]
+}
+
+// --------------------------------------------------------
+// ENUMS
+// --------------------------------------------------------
+
+Enum enum_order_status {
+  paid
+  fully_refunded
+  partially_refunded
+}
+
+Enum enum_refund_status {
+  restock [note: 'Vuelve al stock (Producto intacto)']
+  discard [note: 'Se descarta (Producto abierto/dañado)']
 }
