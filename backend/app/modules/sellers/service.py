@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.sellers.models import Seller
 from app.modules.sellers.schemas import SellerCreate, SellerUpdate
+from app.core.security import get_password_hash
 
 
 class SellerService:
@@ -18,7 +19,6 @@ class SellerService:
         # Input validate
         seller_output = Seller.model_validate(seller_input)
         # Non duplicity
-        
         statement_email = select(Seller).where(Seller.email == seller_input.email)
         result_email = await self.session.execute(statement_email)
         if result_email.scalars().first():
@@ -34,6 +34,10 @@ class SellerService:
                 status_code=status.HTTP_409_CONFLICT,
                 detail="El dni ya está registrado!"
             )
+
+        # Hashing
+        seller_output.hashed_password = get_password_hash(seller_input.password)
+        
         # To db
         self.session.add(seller_output)
         await self.session.commit()
@@ -62,6 +66,17 @@ class SellerService:
     
         return result.scalars().all()
     
+    # Get me as seller
+    async def get_me_as_seller(
+        self,
+        seller_id: UUID,
+    ):
+        seller_query = await self.session.get(Seller, seller_id)
+        if not seller_query:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No existe un vendedor con el identificador")
+        return seller_query
+    
+    # Update seller
     async def update_seller_as_service(
         self,
         seller_id: UUID,
@@ -78,10 +93,10 @@ class SellerService:
         if not seller_dict:
             return seller_query
     
-        # Validación Email
+        # Email validation
         if "email" in seller_dict:
             new_email = seller_dict["email"]
-            # buscar el mismo email, para un diferente id (FN)
+            # Same email, for a different id (FN)
             statement_email = select(Seller).where(
                 (Seller.email == new_email) & (Seller.seller_id != seller_id)
             )
@@ -89,10 +104,10 @@ class SellerService:
             if result_email.scalars().first():
                 raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="El email ya está en uso por otro vendedor")
 
-        # Validación DNI
+        # DNI validation
         if "dni" in seller_dict:
             new_dni = seller_dict["dni"]
-            # buscar el mismo dni, para un diferente id (FN)
+            # Same dni, for a different id (FN)
             statement_dni = select(Seller).where(
                 (Seller.dni == new_dni) & (Seller.seller_id != seller_id)
             )
@@ -108,6 +123,7 @@ class SellerService:
     
         return seller_query
     
+    # Soft delete
     async def delete_seller_as_service(
         self,
         seller_id: UUID 
@@ -118,7 +134,8 @@ class SellerService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="No existe un vendedor con el identificador"
             )
-        await self.session.delete(seller_query)
+        seller_query.is_active = False
+        self.session.add(seller_query)
         await self.session.commit()
     
         return {"detail": "OK"}

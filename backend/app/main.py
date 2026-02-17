@@ -6,11 +6,11 @@ from sqlmodel import select
 from app.core.db import init_db, SessionDep
 
 # Routers
+from app.modules.auth.router import router as auth_router
 from app.modules.inventory.router import router as inventory_router
 from app.modules.orders.router import router as orders_router
 from app.modules.refunds.router import router as refunds_router
 from app.modules.sellers.router import router as sellers_router
-# from app.modules.refunds.router import router as refunds_router
 
 # Lifespan
 @asynccontextmanager
@@ -52,6 +52,11 @@ app.add_middleware(
 
 # Routers list
 app.include_router(
+    auth_router,
+    prefix="/api/v1/auth",
+    tags=["Auth"]
+)
+app.include_router(
     inventory_router, 
     prefix="/products",
     tags=["Products"]
@@ -75,20 +80,17 @@ app.include_router(
 
 # Home
 @app.get("/", tags=["Health"])
-def read_root(session: SessionDep):
-    # Try connection
+async def read_root(session: SessionDep):
     try:
-        session.execute(select(1))
-        # Yes?
+        await session.execute(select(1))
         return {
             "status": "ok", 
             "message": "RapiStock API is running!!",
-            "details": "idk, but it's fine"
+            "details": "Database connection healthy"
         }
     except Exception as e:
-        # No?
         return {
-            "status": "ok", 
-            "message": "RapiStock API is running!!", 
+            "status": "error", 
+            "message": "RapiStock API is running but DB connection failed", 
             "details": str(e)
         }

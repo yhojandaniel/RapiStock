@@ -35,6 +35,10 @@ class Seller(SellerBase, table=True):
         default_factory=uuid4, 
         primary_key=True
     )
+    hashed_password: str = Field(
+        max_length=255,
+        nullable=False
+    )
     created_at: datetime = Field(
         default_factory = lambda: datetime.now(timezone.utc),
         sa_column=Column(

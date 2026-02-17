@@ -8,3 +8,7 @@ class OrderStatus(str, Enum):
 class RefundDetailStatus(str, Enum):
     SAME = "same"     # Vuelve al inventario
     OPENED = "opened" # Se descarta / Merma
+    
+class UserRoleEnum(str, Enum):
+    ADMIN = "admin"
+    SELLER = "seller"

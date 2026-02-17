@@ -33,11 +33,19 @@ class RefundService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"{item_input.order_detail_id} no pertenece a tu Orden de compra!"
             )
+        # Is there any refund for this order_detail?
+        refund_query = select(RefundDetail).where(
+            RefundDetail.order_detail_id == order_detail.order_detail_id
+        )
+        result = await self.session.execute(refund_query)
+        refunds = result.scalars().all()
+        # Calculate the current quantity available to refund
+        current_quantity = order_detail.product_quantity - sum(detail.product_quantity for detail in refunds)
         # Avoid "overrefund"
-        if item_input.product_quantity > order_detail.product_quantity:
+        if item_input.product_quantity > current_quantity:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"No puedes reembolsar {item_input.product_quantity}, si ordenaste {order_detail.product_quantity}"
+                detail=f"No puedes reembolsar {item_input.product_quantity}, si ordenaste {current_quantity}"
             )
             
         # Check status

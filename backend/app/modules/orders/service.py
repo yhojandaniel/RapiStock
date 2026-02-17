@@ -117,8 +117,16 @@ class OrderService:
     async def update_order_as_service(
         self,
         order_id: UUID,
+        seller_id: UUID,
         status_input: OrderStatus
     ):
+        # Verify if author is the same as the seller
+        order = await self.session.get(Order, order_id)
+        if order.seller_id != seller_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No tienes permisos para actualizar este pedido"
+            )
         # Select without details
         query_order = select(Order).where(Order.order_id == order_id).options(selectinload(Order.details))
         result_query = await self.session.execute(query_order)

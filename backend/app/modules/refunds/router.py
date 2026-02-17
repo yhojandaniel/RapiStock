@@ -1,11 +1,13 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from uuid import UUID
 
 from app.core.db import SessionDep
 from app.modules.refunds.schemas import RefundCreate, RefundRead
 from app.modules.refunds.service import RefundService
-from app.shared.enums import RefundDetailStatus
+from app.shared.enums import RefundDetailStatus, UserRoleEnum
+from app.shared.dependencies import get_current_user
+from app.modules.auth.schemas import TokenData
 
 router = APIRouter()
 
@@ -20,8 +22,14 @@ def get_service(session: SessionDep) -> RefundService:
 )
 async def create_refund(
     refund_input: RefundCreate,
-    service: RefundService = Depends(get_service)
+    service: RefundService = Depends(get_service),
+    token_data: TokenData = Depends(get_current_user)
 ):
+    if token_data.role != UserRoleEnum.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permisos para crear reembolsos"
+        )
     return await service.create_refund_as_service(refund_input=refund_input)
 
 @router.get(
@@ -35,8 +43,14 @@ async def get_refund(
     refund_id: UUID | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-    service: RefundService = Depends(get_service)
+    service: RefundService = Depends(get_service),
+    token_data: TokenData = Depends(get_current_user)
 ):
+    if token_data.role != UserRoleEnum.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permisos para obtener reembolsos"
+        )
     return await service.get_refund_as_service(
         order_id=order_id,
         refund_id=refund_id,

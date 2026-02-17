@@ -45,7 +45,9 @@ class ProductService:
     
     async def get_product_as_service(
         self,
-        search: str | None = None, 
+        search: str | None = None,
+        offset: int = 0,
+        limit: int = 20
     ):
         # Query
         product_query = select(Product)
@@ -57,9 +59,12 @@ class ProductService:
                     col(Product.name).ilike(f"%{search}%")
                 )
             )
+        # Limit
+        product_query = product_query.order_by(
+            Product.created_at.desc()
+        ).offset(offset).limit(limit)
         # If there's no data, return empty list
         # Don't use any raise here (v0.1.0)
-        
         result = await self.session.execute(product_query)
         return result.scalars().all()
     
@@ -142,7 +147,9 @@ class ProductService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="El producto que quieres borrar no existe con ese ID!"
             )
-        # to DB
-        await self.session.delete(product_query)
+        # soft delete
+        product_query.is_active = False
+        self.session.add(product_query)
         await self.session.commit()
+        await self.session.refresh(product_query)
         return {"detail": "OK"}

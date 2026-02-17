@@ -4,7 +4,7 @@ from datetime import datetime
 from app.modules.sellers.models import SellerBase
 
 class SellerCreate(SellerBase):
-    pass
+    password: str
 
 class SellerUpdate(SQLModel):
     dni: str | None = None
